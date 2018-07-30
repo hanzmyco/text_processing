@@ -19,6 +19,9 @@ def _parse_label_function(line):
     label=tf.decode_csv(line,[[0]])
     return tf.one_hot(tf.convert_to_tensor(label),config.NUM_CLASSES)
 
+
+
+
 def get_data(lm,local_dest,local_dest_label=None):
     dataset=tf.data.TextLineDataset(local_dest).map(_parse_data_function)
     batched_dataset = dataset.batch(config.BATCH_SIZE)
@@ -26,7 +29,6 @@ def get_data(lm,local_dest,local_dest_label=None):
     lm.seq= iterator.get_next()
     init = iterator.make_initializer(batched_dataset)
     lm.init=[init]
-    lm.input_fn=_parse_data_function
 
     if local_dest_label:
         labelset=tf.data.TextLineDataset(local_dest_label).map(_parse_label_function)
@@ -35,6 +37,7 @@ def get_data(lm,local_dest,local_dest_label=None):
         lm.label = iterator_label.get_next()
         init_label = iterator_label.make_initializer(batched_dataset_label)
         lm.init.append(init_label)
+    return dataset
 
 def get_pretrain_embedding(lm,local_dest):
     _, embd = data_preprocessing.loadGloVe(local_dest,embedding=True)
@@ -43,8 +46,3 @@ def get_pretrain_embedding(lm,local_dest):
     lm.embedding_size=config.PRETRAIN_EMBD_SIZE
     lm.pretrain_embd=tf.convert_to_tensor(embd)
     lm.vocab_size=config.PRETRAIN_EMBD_VOCAB_SIZE
-
-
-
-
-

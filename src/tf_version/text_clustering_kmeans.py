@@ -32,8 +32,8 @@ def main():
                 embd_dest = config.PRETRAIN_EMBD_PATH
                 data.get_pretrain_embedding(lm,embd_dest)
 
-            data.get_data(lm,local_dest,local_dest_label)
-            lm.create_model(config.ONE_HOT_TAG,training=True)
+            print('test')
+            lm.create_model(config.ONE_HOT_TAG,training=True,input_fn=data.get_data(lm,local_dest,local_dest_label))
             #run_process.train(lm,config.EPOCH_NUM)
 
     elif args.mode == 'inference':

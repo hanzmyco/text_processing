@@ -25,7 +25,7 @@ class BaseModel(object):
         self.vocab_size=config.VOCAB_SIZE
         self.loss=0
 
-    def create_model(self,one_hot=False,training=True):
+    def create_model(self,one_hot=False,training=True,input_fn=None):
 
         if one_hot:  # not using embedding layer
             embed = self.seq
@@ -49,22 +49,25 @@ class BaseModel(object):
                 embed = tf.nn.embedding_lookup(embed_matrix, self.seq, name='embedding')
 
 
-                if training:
+        if training:
+                    print('point1')
                     num_clusters = 5
-                    kmeans = tf.contrib.factorization.KMeansClustering(
-                        num_clusters=num_clusters, use_mini_batch=False)
+                    kmeans = tf.contrib.learn.KMeansClustering(
+                        num_clusters=num_clusters)
+
+                    print('point2')
 
                     # train
                     num_iterations = 10
                     previous_centers = None
                     for _ in range(num_iterations):
-                      kmeans.train(self.input_fn)
-                      cluster_centers = kmeans.cluster_centers()
+                      kmeans.fit(input_fn)
+                      cluster_centers = kmeans.cluster()
                       if previous_centers is not None:
                         print('delta:'), cluster_centers - previous_centers
                       previous_centers = cluster_centers
-                      print('score:'), kmeans.score(self.input_fn)
+                      print('score:'), kmeans.score(input_fn)
                     print('cluster centers:'), cluster_centers
 
                     # map the input points to their clusters
-                    cluster_indices = list(kmeans.predict_cluster_index(embed))
+                    cluster_indices = list(kmeans.predict_cluster_idx(input_fn))
