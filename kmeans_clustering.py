@@ -1,7 +1,3 @@
-# Author: Peter Prettenhofer <peter.prettenhofer@gmail.com>
-#         Lars Buitinck
-# License: BSD 3 clause
-
 from __future__ import print_function
 
 from sklearn.datasets import fetch_20newsgroups
