@@ -5,6 +5,7 @@ from sklearn.decomposition import TruncatedSVD
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_extraction.text import HashingVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
+from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import Normalizer
 from sklearn import metrics
@@ -17,6 +18,10 @@ import sys
 from time import time
 
 import numpy as np
+
+import read_json
+from nltk.tokenize.stanford_segmenter import StanfordSegmenter
+
 
 
 # Display progress logs on stdout
@@ -54,37 +59,12 @@ def is_interactive():
 # work-around for Jupyter notebook and IPython console
 argv = [] if is_interactive() else sys.argv[1:]
 (opts, args) = op.parse_args(argv)
-if len(args) > 0:
-    op.error("this script takes no arguments.")
-    sys.exit(1)
+#if len(args) > 0:
+#    op.error("this script takes no arguments.")
+#    sys.exit(1)
 
 
 # #############################################################################
-# Load some categories from the training set
-categories = [
-    'alt.atheism',
-    'talk.religion.misc',
-    'comp.graphics',
-    'sci.space',
-]
-# Uncomment the following to do the analysis on all the categories
-# categories = None
-
-print("Loading 20 newsgroups dataset for categories:")
-print(categories)
-
-dataset = fetch_20newsgroups(subset='all', categories=categories,
-                             shuffle=True, random_state=42)
-
-print("%d documents" % len(dataset.data))
-print("%d categories" % len(dataset.target_names))
-print()
-
-labels = dataset.target
-true_k = np.unique(labels).shape[0]
-print(labels)
-print(true_k)
-#exit(1)
 
 print("Extracting features from the training dataset using a sparse vectorizer")
 t0 = time()
@@ -97,18 +77,31 @@ if opts.use_hashing:
         vectorizer = make_pipeline(hasher, TfidfTransformer())
     else:
         vectorizer = HashingVectorizer(n_features=opts.n_features,
-                                       stop_words='english',
+                                       #stop_words='english',
                                        alternate_sign=False, norm='l2',
                                        binary=False)
 else:
     vectorizer = TfidfVectorizer(max_df=0.5, max_features=opts.n_features,
-                                 min_df=2, stop_words='english',
-                                 use_idf=opts.use_idf)
-X = vectorizer.fit_transform(dataset.data)
+                                 min_df=1, stop_words='english',
+                                 use_idf=True)
+
+
+
+    #vectorizer = CountVectorizer(tokenizer=lambda text: text.split())
+    #vectorizer = TfidfVectorizer(tokenizer=lambda text: text.split())
+
+data_subtitle=[]
+vid_list=[]
+limits=None
+read_json.read_json(sys.argv[1],data_subtitle,sys.argv[2],vid_list,limits)
+print(len(data_subtitle))
+X = vectorizer.fit_transform(data_subtitle)
 
 print("done in %fs" % (time() - t0))
 print("n_samples: %d, n_features: %d" % X.shape)
 print()
+
+#opts.n_components=50
 
 if opts.n_components:
     print("Performing dimensionality reduction using LSA")
@@ -134,11 +127,14 @@ if opts.n_components:
 # #############################################################################
 # Do the actual clustering
 
+true_k=int(sys.argv[3])
+
+opts.minibatch=False
 if opts.minibatch:
     km = MiniBatchKMeans(n_clusters=true_k, init='k-means++', n_init=1,
                          init_size=1000, batch_size=1000, verbose=opts.verbose)
 else:
-    km = KMeans(n_clusters=true_k, init='k-means++', max_iter=100, n_init=1,
+    km = KMeans(n_clusters=true_k, init='k-means++', max_iter=1000, n_init=1,
                 verbose=opts.verbose)
 
 print("Clustering sparse data with %s" % km)
@@ -146,17 +142,6 @@ t0 = time()
 km.fit(X)
 print("done in %0.3fs" % (time() - t0))
 print()
-
-print("Homogeneity: %0.3f" % metrics.homogeneity_score(labels, km.labels_))
-print("Completeness: %0.3f" % metrics.completeness_score(labels, km.labels_))
-print("V-measure: %0.3f" % metrics.v_measure_score(labels, km.labels_))
-print("Adjusted Rand-Index: %.3f"
-      % metrics.adjusted_rand_score(labels, km.labels_))
-print("Silhouette Coefficient: %0.3f"
-      % metrics.silhouette_score(X, km.labels_, sample_size=1000))
-
-print()
-
 
 if not opts.use_hashing:
     print("Top terms per cluster:")
@@ -168,8 +153,36 @@ if not opts.use_hashing:
         order_centroids = km.cluster_centers_.argsort()[:, ::-1]
 
     terms = vectorizer.get_feature_names()
-    for i in range(true_k):
-        print("Cluster %d:" % i, end='')
-        for ind in order_centroids[i, :10]:
-            print(' %s' % terms[ind], end='')
-        print()
+
+    with open(sys.argv[5], 'w', encoding='utf-8') as f:
+        for i in range(true_k):
+            print("Cluster %d:" % i, end='')
+            f.write('Cluster'+str(i)+': ')
+            #for ind in km.cluster_centers_[i,:5]:
+            for ind in order_centroids[i, :5]:
+                print(' %s' % terms[ind], end='')
+                f.write(terms[ind]+' ')
+            f.write('\n')
+            print()
+
+    index_dictionary={}
+    for index,label in enumerate(km.labels_):
+        if label not in index_dictionary:
+            index_dictionary[label]=[index]
+        else:
+            index_dictionary[label].append(index)
+
+    print(index_dictionary)
+
+    with open(sys.argv[4], 'w',encoding = 'utf-8') as f:
+        for label in range(0,true_k):
+            f.write('cluster : '+str(label)+'\n')
+            print('cluster ' + str(label)+' : ')
+            for index in index_dictionary[label]:
+                f.write(data_subtitle[index].strip(' ')+'\n')
+                print(data_subtitle[index].strip(' ')+'\n')
+            print()
+            f.write('\n')
+
+
+
