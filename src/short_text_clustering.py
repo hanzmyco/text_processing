@@ -12,7 +12,8 @@ def main():
         print('finish initilizing model')
 
     data_in=[]
-    read_json.read_json(config.path_in,data_in,config.stop_word_path)
+    feed_id=[]
+    read_json.read_json(config.path_in,data_in,config.stop_word_path,feed_id,config.data_lines)
     model.feature_transform(data_in)
 
     if config.algo_name =='KMeans':
@@ -22,17 +23,6 @@ def main():
         terms=model.vectorizer.get_feature_names()
         algo_instance.get_centroids()
 
-        with open(config.top_terms_file, 'w', encoding='utf-8') as f:
-            for i in range(config.cluster_number):
-                print("Cluster %d:" % i, end='')
-                f.write('Cluster' + str(i) + ': ')
-                # for ind in km.cluster_centers_[i,:5]:
-                for ind in algo_instance.order_centroids[i, :5]:
-                    print(' %s' % terms[ind], end='')
-                    f.write(terms[ind] + ' ')
-                f.write('\n')
-                print()
-
         index_dictionary = {}
         for index, label in enumerate(algo_instance.algo.labels_):
             if label not in index_dictionary:
@@ -40,17 +30,31 @@ def main():
             else:
                 index_dictionary[label].append(index)
 
-        print(index_dictionary)
 
+        final_tuple=[]
         with open(config.cluster_out_file, 'w', encoding='utf-8') as f:
             for label in range(0, config.cluster_number):
                 f.write('cluster : ' + str(label) + '\n')
-                print('cluster ' + str(label) + ' : ')
                 for index in index_dictionary[label]:
                     f.write(data_in[index].strip(' ') + '\n')
-                    print(data_in[index].strip(' ') + '\n')
-                print()
+                total_distance=sum([algo_instance.algo.score(model.feature[index]) for index in index_dictionary[label]])
                 f.write('\n')
+
+                targeted_feed_id=[feed_id[index] for index in index_dictionary[label]]
+                final_tuple.append([total_distance,label,targeted_feed_id])
+
+            final_tuple.sort(reverse=True)
+
+            with open(config.top_terms_file, 'w', encoding='utf-8') as f:
+                for index_tuples in final_tuple:
+                    i=index_tuples[1]
+                    f.write('Cluster' + str(i) + ':    '+str(index_tuples[0])+'    ')
+                    for ind in algo_instance.order_centroids[i, :5]:
+                        f.write(terms[ind] + ' ')
+                    f.write('\n')
+                    for feeds_id in index_tuples[2]:
+                        f.write(feeds_id+'\n')
+                    f.write('\n\n')
 
 if __name__ == '__main__':
     main()
