@@ -14,14 +14,26 @@ def main():
     data_in=[]
     feed_id=[]
     read_json.read_json(config.path_in,data_in,config.stop_word_path,feed_id,config.data_lines)
+    print('finish reading data')
     model.feature_transform(data_in)
+
 
     if config.algo_name =='KMeans':
         algo_instance = KMeans.KMeansClustering(config.algo_name)
         algo_instance.fit(model.feature)
+        print('start training model')
+        algo_instance.serilize_model()
+        algo_instance.get_centroids()
+        algo_instance.output_cluster_info(data_in,model,feed_id)
 
+
+
+
+        '''
         terms=model.vectorizer.get_feature_names()
         algo_instance.get_centroids()
+
+
 
         index_dictionary = {}
         for index, label in enumerate(algo_instance.algo.labels_):
@@ -41,20 +53,37 @@ def main():
                 f.write('\n')
 
                 targeted_feed_id=[feed_id[index] for index in index_dictionary[label]]
-                final_tuple.append([total_distance,label,targeted_feed_id])
+                term_list=set()
+                for ind in algo_instance.order_centroids[label, :5]:
+                    term_list.add(terms[ind])
+
+                final_tuple.append([total_distance,label,targeted_feed_id,term_list])
 
             final_tuple.sort(reverse=True)
+         '''
 
+        '''
+            check_list={}
+            new_tuple=[]
+            for index in range(0,len(final_tuple)):
+                for index2 in range(0,final_tuple):
+                    if index != index2 and index not in check_list :
+                        total_diff=final_tuple[index][3]^final_tuple[index2][3]
+                        if total_diff < config.diff_threshold:
+                            new_tuple.append([ite[0]/2,ite[1].ite[2]+ite2[2],ite[3]])
+        '''
+
+        '''
             with open(config.top_terms_file, 'w', encoding='utf-8') as f:
                 for index_tuples in final_tuple:
                     i=index_tuples[1]
                     f.write('Cluster' + str(i) + ':    '+str(index_tuples[0])+'    ')
-                    for ind in algo_instance.order_centroids[i, :5]:
-                        f.write(terms[ind] + ' ')
+
+                    f.write(str(index_tuples[3]) + ' ')
                     f.write('\n')
                     for feeds_id in index_tuples[2]:
                         f.write(feeds_id+'\n')
                     f.write('\n\n')
-
+        '''
 if __name__ == '__main__':
     main()
