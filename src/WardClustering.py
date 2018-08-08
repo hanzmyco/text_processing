@@ -1,17 +1,11 @@
-from sklearn.cluster import KMeans, MiniBatchKMeans
+from sklearn.cluster import AgglomerativeClustering
 import Algorithm
 import config
 
-class KMeansClustering(Algorithm.Base_Algorithm):
+class WardClustering(Algorithm.Base_Algorithm):
     def __init__(self,algo_name):
         Algorithm.Base_Algorithm.__init__(self,algo_name)
-
-        if config.minibatch:
-            self.algo = MiniBatchKMeans(n_clusters=config.cluster_number, init='k-means++', n_init=1,
-                         init_size=config.init_size, batch_size=config.batch_size, verbose=config.verbose)
-        else:
-            self.algo = KMeans(n_clusters=config.cluster_number, init='k-means++', max_iter=config.max_iter, n_init=1,
-                               verbose=config.verbose)
+        self.algo = AgglomerativeClustering(n_clusters=config.cluster_number,linkage='ward')
         self.order_centroids = None
 
     def get_centroids(self,svd=None):

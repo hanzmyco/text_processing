@@ -20,8 +20,8 @@ def main():
 
     if config.algo_name =='KMeans':
         algo_instance = KMeans.KMeansClustering(config.algo_name)
-        algo_instance.fit(model.feature)
         print('start training model')
+        algo_instance.fit(model.feature)
         algo_instance.serilize_model()
         algo_instance.get_centroids()
         algo_instance.output_cluster_info(data_in,model,feed_id)
