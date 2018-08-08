@@ -3,7 +3,7 @@ import config
 
 
 class Base_Algorithm(object):
-    def __init__(self,algo_name):
+    def __init__(self,algo_name=None):
         self.algo_name = algo_name
 
     def fit(self, feature):

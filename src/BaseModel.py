@@ -4,7 +4,7 @@ from sklearn.pipeline import make_pipeline
 import config
 
 class BaseModel(object):
-    def __init__(self,model):
+    def __init__(self,model=None):
         self.model = model
 
     def feature_transform(self,data_in):
