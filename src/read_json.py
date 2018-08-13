@@ -22,18 +22,20 @@ def read_video_info(file_name,data_out,label_out):
         if data['category']!='' and data['description'].strip()!='':
             class_=data['category'].split(',')
             description = data['description']
-            multi_line_ds=description.split('\n')
-            #if len(multi_line_ds)>0:
-            #    print(description)
+
+            # handle \n\r etc
+            filtered_des=description.splitlines()[0]
+            if filtered_des=='':
+                continue
 
             if class_[0]== '戏精':
                 num_xijing+=1
-                video[key] = (description, 0)
+                video[key] = (filtered_des, 0)
             elif class_[0]=='自拍':
-                video[key] = (description, 1)
+                video[key] = (filtered_des, 1)
                 num_selfie+=1
             elif class_==['跳舞','手势舞']:
-                video[key] = (description, 2)
+                video[key] = (filtered_des, 2)
                 num_shoushiwu+=1
 
     print(num_xijing)
