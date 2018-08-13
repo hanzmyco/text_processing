@@ -15,11 +15,11 @@ def k_fold_validation(data_total,label_total):
     for index in range(0,10):
         X_train,X_test,y_train,y_test = train_test_split(data_all,label_all,test_size=0.1)
 
-        with open('C:\\Users\\mycohzhang\\source\\text_classification\\data\\video_info\\10_cross_validation\\train\\train_txt.ids.'+str(index), 'w', encoding='utf-8') as f:
+        with open('C:\\Users\\mycohzhang\\source\\text_classification\\data\\video_info\\10_cross_validation\\train\\train.txt.ids.'+str(index), 'w', encoding='utf-8') as f:
             for ite in X_train:
                 f.write(ite+'\n')
 
-        with open('C:\\Users\\mycohzhang\\source\\text_classification\\data\\video_info\\10_cross_validation\\test\\test_txt.ids.'+str(index), 'w', encoding='utf-8') as f:
+        with open('C:\\Users\\mycohzhang\\source\\text_classification\\data\\video_info\\10_cross_validation\\test\\test.txt.ids.'+str(index), 'w', encoding='utf-8') as f:
             for ite in X_test:
                 f.write(ite+'\n')
 
