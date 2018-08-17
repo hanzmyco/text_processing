@@ -53,7 +53,7 @@ def read_video_info(file_name,data_out,label_out):
 def read_json(path_in,data_out,stop_word_path,vid_out=None,set_limit=None,file_out=None):
     p = Path(path_in)
     file_names = list(p.glob('*.txt'))
-
+    print(len(file_names))
     stoplist = set([line.strip() for line in open(stop_word_path,encoding='utf-8')])
 
     limit=0
@@ -83,6 +83,9 @@ def read_json(path_in,data_out,stop_word_path,vid_out=None,set_limit=None,file_o
 
                 if set_limit:
                     limit+=1
+    print(len(data_out))
+    print('stop')
+
 
 if __name__ == '__main__':
     file_name = 'C:\\Users\\mycohzhang\\source\data\\video_info\\json2.txt'
